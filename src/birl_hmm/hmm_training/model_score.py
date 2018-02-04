@@ -1,10 +1,10 @@
-import util
+import hmm_util
 import numpy as np
 import ipdb
 
 def score(score_metric, model, X, lengths):
     if score_metric == '_score_metric_worst_stdmeanratio_in_10_slice_':
-        slice_10_time_step_log_lik = [[model.score(X[i:i+k*(j-i)/10]) for k in range(1, 11, 1)] for i, j in util.iter_from_X_lengths(X, lengths)]
+        slice_10_time_step_log_lik = [[model.score(X[i:i+k*(j-i)/10]) for k in range(1, 11, 1)] for i, j in hmm_util.iter_from_X_lengths(X, lengths)]
         matrix = np.matrix(slice_10_time_step_log_lik)
         slice_10_means = abs(matrix.mean(0))
         slice_10_std = matrix.std(0)
@@ -12,7 +12,7 @@ def score(score_metric, model, X, lengths):
         score = slice_10_stme_ratio.max()
     elif score_metric == '_score_metric_last_time_stdmeanratio_':
         final_time_step_log_lik = [
-            model.score(X[i:j]) for i, j in util.iter_from_X_lengths(X, lengths)
+            model.score(X[i:j]) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         matrix = np.matrix(final_time_step_log_lik)
         mean = abs(matrix.mean())
@@ -20,7 +20,7 @@ def score(score_metric, model, X, lengths):
         score = std/mean
     elif score_metric == '_score_metric_sum_stdmeanratio_using_fast_log_cal_':
         final_time_step_log_lik = [
-            util.fast_log_curve_calculation(X[i:j], model) for i, j in util.iter_from_X_lengths(X, lengths)
+            hmm_util.fast_log_curve_calculation(X[i:j], model) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         
         curve_mat = np.matrix(final_time_step_log_lik) 
@@ -29,7 +29,7 @@ def score(score_metric, model, X, lengths):
         score = abs(std_of_log_curve/mean_of_log_curve).mean()
     elif score_metric == '_score_metric_mean_of_std_using_fast_log_cal_':
         log_curves_of_all_trials = [
-            util.fast_log_curve_calculation(X[i:j], model) for i, j in util.iter_from_X_lengths(X, lengths)
+            hmm_util.fast_log_curve_calculation(X[i:j], model) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         
         curve_mat = np.matrix(log_curves_of_all_trials) 
@@ -37,7 +37,7 @@ def score(score_metric, model, X, lengths):
         score = std_of_log_curve.mean()
     elif score_metric == '_score_metric_hamming_distance_using_fast_log_cal_':
         import scipy.spatial.distance as sp_dist
-        log_lik = [util.fast_log_curve_calculation(X[i:j], model) for i, j in util.iter_from_X_lengths(X, lengths)
+        log_lik = [hmm_util.fast_log_curve_calculation(X[i:j], model) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         log_mat         = np.matrix(log_lik)
         std_of_log_mat  = log_mat.std(0)
@@ -48,7 +48,7 @@ def score(score_metric, model, X, lengths):
         score  = hamming_score
     elif score_metric == '_score_metric_std_of_std_using_fast_log_cal_':
         log_curves_of_all_trials = [
-            util.fast_log_curve_calculation(X[i:j], model) for i, j in util.iter_from_X_lengths(X, lengths)
+            hmm_util.fast_log_curve_calculation(X[i:j], model) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         
         curve_mat = np.matrix(log_curves_of_all_trials) 
@@ -56,7 +56,7 @@ def score(score_metric, model, X, lengths):
         score = std_of_log_curve.std()
     elif score_metric == '_score_metric_mean_of_std_divied_by_final_log_mean_':
         log_curves_of_all_trials = [
-            util.fast_log_curve_calculation(X[i:j], model) for i, j in util.iter_from_X_lengths(X, lengths)
+            hmm_util.fast_log_curve_calculation(X[i:j], model) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         
         curve_mat = np.matrix(log_curves_of_all_trials) 
@@ -66,7 +66,7 @@ def score(score_metric, model, X, lengths):
         score = abs(mean_of_std/final_log_mean)
     elif score_metric == '_score_metric_mean_of_std_of_gradient_divied_by_final_log_mean_':
         log_curves_of_all_trials = [
-            util.fast_log_curve_calculation(X[i:j], model) for i, j in util.iter_from_X_lengths(X, lengths)
+            hmm_util.fast_log_curve_calculation(X[i:j], model) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         
         curve_mat = np.matrix(log_curves_of_all_trials) 
@@ -78,8 +78,8 @@ def score(score_metric, model, X, lengths):
     elif score_metric == '_score_metric_minus_diff_btw_1st_2ed_emissionprob_':
        
         score_of_trials = []
-        for i, j in util.iter_from_X_lengths(X, lengths):
-            framelogprob = util.get_emission_log_prob_matrix(X[i:j], model)
+        for i, j in hmm_util.iter_from_X_lengths(X, lengths):
+            framelogprob = hmm_util.get_emission_log_prob_matrix(X[i:j], model)
 
             if framelogprob.shape[1] == 1:
                 print 'hidden state amount = 1, but _score_metric_minus_diff_btw_1st_2ed_emissionprob_ wants hidden state amount > 1, so no score for this turn'
@@ -94,8 +94,8 @@ def score(score_metric, model, X, lengths):
     elif score_metric == '_score_metric_minus_diff_btw_1st_2ed(>=0)_divide_maxeprob_emissionprob_':
        
         score_of_trials = []
-        for i, j in util.iter_from_X_lengths(X, lengths):
-            framelogprob = util.get_emission_log_prob_matrix(X[i:j], model)
+        for i, j in hmm_util.iter_from_X_lengths(X, lengths):
+            framelogprob = hmm_util.get_emission_log_prob_matrix(X[i:j], model)
 
             if framelogprob.shape[1] == 1:
                 print 'hidden state amount = 1, but _score_metric_minus_diff_btw_1st_2ed_emissionprob_ wants hidden state amount > 1, so no score for this turn'
@@ -118,8 +118,8 @@ def score(score_metric, model, X, lengths):
     elif score_metric == '_score_metric_minus_diff_btw_1st_2ed(delete<0)_divide_maxeprob_emissionprob_':
        
         score_of_trials = []
-        for i, j in util.iter_from_X_lengths(X, lengths):
-            framelogprob = util.get_emission_log_prob_matrix(X[i:j], model)
+        for i, j in hmm_util.iter_from_X_lengths(X, lengths):
+            framelogprob = hmm_util.get_emission_log_prob_matrix(X[i:j], model)
 
             if framelogprob.shape[1] == 1:
                 print 'hidden state amount = 1, but _score_metric_minus_diff_btw_1st_2ed_emissionprob_ wants hidden state amount > 1, so no score for this turn'
@@ -151,8 +151,8 @@ def score(score_metric, model, X, lengths):
     elif score_metric == '_score_metric_mean_of_(std_of_(max_emissionprob_of_trials))_':
       
         mat = []  
-        for i, j in util.iter_from_X_lengths(X, lengths):
-            framelogprob = util.get_emission_log_prob_matrix(X[i:j], model)
+        for i, j in hmm_util.iter_from_X_lengths(X, lengths):
+            framelogprob = hmm_util.get_emission_log_prob_matrix(X[i:j], model)
 
             if framelogprob.shape[1] == 1:
                 print 'hidden state amount = 1, but _score_metric_minus_diff_btw_1st_2ed_emissionprob_ wants hidden state amount > 1, so no score for this turn'
@@ -166,8 +166,8 @@ def score(score_metric, model, X, lengths):
     elif score_metric == '_score_metric_duration_of_(diff_btw_1st_2ed_emissionprob_<_10)_':
        
         score_of_trials = []
-        for i, j in util.iter_from_X_lengths(X, lengths):
-            framelogprob = util.get_emission_log_prob_matrix(X[i:j], model)
+        for i, j in hmm_util.iter_from_X_lengths(X, lengths):
+            framelogprob = hmm_util.get_emission_log_prob_matrix(X[i:j], model)
 
             if framelogprob.shape[1] == 1:
                 print 'hidden state amount = 1, but _score_metric_minus_diff_btw_1st_2ed_emissionprob_ wants hidden state amount > 1, so no score for this turn'
@@ -182,7 +182,7 @@ def score(score_metric, model, X, lengths):
         score = np.array(score_of_trials).mean()
     elif score_metric == '_score_metric_sum_of_loglik_':
         final_time_step_log_lik = [
-            model.score(X[i:j]) for i, j in util.iter_from_X_lengths(X, lengths)
+            model.score(X[i:j]) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
         ]
         matrix = np.matrix(final_time_step_log_lik)
         s = matrix.sum()

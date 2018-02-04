@@ -55,3 +55,20 @@ def get_emission_log_prob_matrix(X, model):
     else:
         raise Exception('model of type %s is not supported by fast_log_curve_calculation.'%(type(model),))
 
+def convert_camel_to_underscore(name):
+    import re
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+def get_config_name_abbr(config_name):
+    abbr = ''
+    uncamel_key = convert_camel_to_underscore(config_name)
+    for word in uncamel_key.split('_'): 
+        abbr += word[0]
+    return abbr
+
+def get_model_config_id(model_config):
+    model_id = ''
+    for config_key in model_config:
+        model_id += '%s_(%s)_'%(get_config_name_abbr(config_key), model_config[config_key])
+    return model_id

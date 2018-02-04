@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 score_hist_stack = []
 
@@ -56,8 +57,10 @@ def clear_last_score_level():
 
     del score_hist_stack[-1]
 
-def get_model_generator(model_type, model_config):
+def get_model_generator(model_type, _model_config):
     global score_hist_stack
+
+    model_config = copy.deepcopy(_model_config)
 
     score_hist_stack = []
     if model_type == 'hmmlearn\'s HMM':

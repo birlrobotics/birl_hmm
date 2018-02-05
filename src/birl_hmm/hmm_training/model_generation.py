@@ -162,7 +162,7 @@ def get_model_generator(model_type, _model_config):
 
                         yield model, now_model_config 
     elif model_type == 'BNPY\'s HMM':
-        import hongminhmmpkg.hmm
+        import birl_hmm.bnpy_hmm_wrapper.hmm
 
 
         if type(model_config['hmm_max_train_iteration']) is not list:
@@ -197,7 +197,7 @@ def get_model_generator(model_type, _model_config):
                                 clear_last_score_level()
                                 break
 
-                            model = hongminhmmpkg.hmm.HongminHMM(
+                            model = birl_hmm.bnpy_hmm_wrapper.hmm.HongminHMM(
                                 alloModel=alloModel,
                                 obsModel=obsModel,
                                 varMethod=varMethod,

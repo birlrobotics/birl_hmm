@@ -16,7 +16,7 @@ def iter_from_X_lengths(X, lengths):
 
 def fast_log_curve_calculation(X, model):
     import hmmlearn.hmm
-    import hongminhmmpkg.hmm
+    import birl_hmm.bnpy_hmm_wrapper.hmm
     import bnpy
 
     if issubclass(type(model), hmmlearn.hmm._BaseHMM):
@@ -38,7 +38,7 @@ def fast_log_curve_calculation(X, model):
 
 def get_emission_log_prob_matrix(X, model):
     import hmmlearn.hmm
-    import hongminhmmpkg.hmm
+    import birl_hmm.bnpy_hmm_wrapper.hmm
     import bnpy
 
     if issubclass(type(model), hmmlearn.hmm._BaseHMM):

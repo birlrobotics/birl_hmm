@@ -1,6 +1,7 @@
 import numpy as np
 import model_generation
 import model_score
+import ipdb
 
 def run(
     list_of_train_mat,
@@ -51,4 +52,4 @@ def run(
         print "cannot train model for state %s"%(state_no,)
         return None
 
-    return model_list
+    return sorted_model_list

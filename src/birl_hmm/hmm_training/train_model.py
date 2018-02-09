@@ -23,12 +23,12 @@ def run(
         print ' working on config:', now_model_config
 
 
-        model = model.fit(train_X, lengths=train_lengths)
 
         try:
+            model = model.fit(train_X, lengths=train_lengths)
             score = model_score.score(score_metric, model, test_X, test_lengths)
-        except ValueError as e:
-            print "scorer failed to score this model, will ignore it"
+        except Exception as e:
+            print "Failed to train this model, will ignore it: %s"%e
             continue
             
         if score == None:

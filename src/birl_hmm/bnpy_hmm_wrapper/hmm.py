@@ -1,5 +1,6 @@
 import bnpy
 import numpy as np
+import ipdb
 
 class HongminHMM():
     def __init__(
@@ -84,7 +85,7 @@ class HongminHMM():
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
         LP = self.model.calc_local_params(dataset)
 
-        log = LP['logLik_n']
+        log = LP['E_log_soft_ev']
         log_curve = [logsumexp(log[i]) for i in range(len(log))]
         log_curve = np.cumsum(log_curve)
 

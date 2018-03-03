@@ -44,7 +44,6 @@ def run(
         print '='*20
         print 
 
-        model_generation.update_now_score(score)
 
     sorted_model_list = sorted(model_list, key=lambda x:x['score'])
 

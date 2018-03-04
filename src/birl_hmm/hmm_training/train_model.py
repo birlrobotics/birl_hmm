@@ -11,6 +11,7 @@ def run(
     score_metric,
 ):
     train_lengths = [i.shape[0] for i in list_of_train_mat]
+    train_lengths[-1] -= 1 #for autoregressive observation
     train_X = np.concatenate(list_of_train_mat, axis=0)
     test_lengths = [i.shape[0] for i in list_of_test_mat]
     test_X = np.concatenate(list_of_test_mat, axis=0)
@@ -21,8 +22,6 @@ def run(
         print
         print '-'*20
         print ' working on config:', now_model_config
-
-
 
         try:
             model = model.fit(train_X, lengths=train_lengths)
@@ -43,7 +42,6 @@ def run(
         print 'score:', score 
         print '='*20
         print 
-
 
     sorted_model_list = sorted(model_list, key=lambda x:x['score'])
 

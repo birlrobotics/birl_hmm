@@ -34,11 +34,10 @@ class HongminHMM():
         self.initname = initname
 
     def fit(self, X, lengths):
-        Xprev      = X
-
+        Xprev      = X[:-1,:]
+        X          = X[1:,:]
         doc_range  = list([0])
         doc_range += (np.cumsum(lengths).tolist())
-
         dataset    = bnpy.data.GroupXData(X, doc_range, None, Xprev)
 
         # -set the hyperparameters
@@ -47,7 +46,6 @@ class HongminHMM():
             self.alloModel,
             self.obsModel,
             self.varMethod,
-            #output_path = os.path.join(model_save_path, 'results'),
             nLap = self.n_iteration,
             nTask = self.nTask,
             nBatch = self.nBatch,
@@ -63,33 +61,24 @@ class HongminHMM():
         return self
 
     def score(self, X):
-        Xprev = X
+        Xprev  = X[:-1,:]
+        X      = X[1:,:]
         length = len(X)
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
         LP = self.model.calc_local_params(dataset)
-
-        #SS = self.model.get_global_suff_stats(dataset, LP)
-        #log_probability = self.model.obsModel.calcMargLik(SS)
-        
         log_probability = LP['evidence'] # by HongmiWu 28.07-2017
-
         return log_probability
 
     def calc_log(self, X):
         from scipy.misc import logsumexp
-        import ipdb
-        Xprev = X
+        Xprev  = X[:-1,:]
+        X      = X[1:,:]
         length = len(X)
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
         LP = self.model.calc_local_params(dataset)
-
         log = LP['E_log_soft_ev']
         log_curve = [logsumexp(log[i]) for i in range(len(log))]
         log_curve = np.cumsum(log_curve)
-
-        #SS = self.model.get_global_suff_stats(dataset, LP)
-        #log_probability = self.model.obsModel.calcMargLik(SS)
-
         return log_curve

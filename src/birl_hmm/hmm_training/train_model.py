@@ -46,7 +46,7 @@ def run(
     sorted_model_list = sorted(model_list, key=lambda x:x['score'])
 
     if len(sorted_model_list) == 0:
-        print "cannot train model for state %s"%(state_no,)
+        print "cannot train model for state"
         return None
 
     return sorted_model_list

@@ -61,6 +61,8 @@ class HongminHMM():
         return self
 
     def score(self, X):
+        if X.shape[0] == 1:
+            X = np.append(X, X[0].reshape((1, -1)), axis=0)
         Xprev  = X[:-1,:]
         X      = X[1:,:]
         length = len(X)

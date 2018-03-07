@@ -2,7 +2,7 @@ import bnpy
 import numpy as np
 import ipdb
 
-class HongminHMM():
+class HongminHMM(object):
     def __init__(
         self, 
         alloModel,

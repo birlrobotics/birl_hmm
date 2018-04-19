@@ -15,6 +15,9 @@ class HongminHMM(object):
         convergethr = 0.000000001, #for memoVB
         alpha = 0.5,
         gamma = 5.0,
+        transAlpha = 5.0,
+        startAlpha = 10.0,
+        hmmKappa = 50.0,
         sF = 1.0,
         ECovMat = 'eye',
         initname = 'randexamples'):
@@ -28,6 +31,9 @@ class HongminHMM(object):
         self.convergethr = convergethr
         self.alpha = alpha
         self.gamma = gamma
+        self.transAlpha = transAlpha,
+        self.startAlpha = startAlpha,
+        self.hmmKappa = hmmKappa,
         self.sF = sF
         self.ECovMat = ECovMat
         self.K = K
@@ -46,16 +52,19 @@ class HongminHMM(object):
             self.alloModel,
             self.obsModel,
             self.varMethod,
-            nLap = self.n_iteration,
-            nTask = self.nTask,
-            nBatch = self.nBatch,
+            nLap        = self.n_iteration,
+            nTask       = self.nTask,
+            nBatch      = self.nBatch,
             convergethr = self.convergethr,
-            alpha = self.alpha,
-            gamma = self.gamma,
-            sF = self.sF,
-            ECovMat = self.ECovMat,
-            K = self.K,
-            initname = self.initname)
+            alpha       = self.alpha,
+            gamma       = self.gamma,
+            transAlpha  = transAlpha,
+            startAlpha  = startAlpha,
+            hmmKappa    = hmmKappa,
+            sF          = self.sF,
+            ECovMat     = self.ECovMat,
+            K           = self.K,
+            initname    = self.initname)
 
         self.model = model
         return self

@@ -31,9 +31,9 @@ class HongminHMM(object):
         self.convergethr = convergethr
         self.alpha = alpha
         self.gamma = gamma
-        self.transAlpha = transAlpha,
-        self.startAlpha = startAlpha,
-        self.hmmKappa = hmmKappa,
+        self.transAlpha = transAlpha
+        self.startAlpha = startAlpha
+        self.hmmKappa = hmmKappa
         self.sF = sF
         self.ECovMat = ECovMat
         self.K = K

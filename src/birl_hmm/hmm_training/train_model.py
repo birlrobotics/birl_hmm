@@ -4,7 +4,15 @@ import model_score
 from sklearn.model_selection import KFold
 import copy
 import sys, traceback
+import coloredlogs, logging
 import ipdb
+
+coloredlogs.install()
+logger = logging.getLogger('birl_hmm_train_model')
+logger.setLevel(logging.INFO)
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(logging.INFO)
+logger.addHandler(consoleHandler)
 
 def run(
     list_of_train_mat,
@@ -19,23 +27,22 @@ def run(
     tried_models = []
     model_generator = model_generation.get_model_generator(model_type, model_config)
     for raw_model, model_config in model_generator:
-        print
-        print '-'*20
-        print ' working on config:', model_config
+        logger.debug('-'*20)
+        logger.debug(' working on config:', model_config)
 
         try:
             kf = KFold(n_splits=5, shuffle=True)
             scores = []
             for cv_train_index, cv_test_index in kf.split(list_of_train_mat):
-                list_of_cv_train_mat = list_of_train_mat[cv_train_index]
-                list_of_cv_test_mat = list_of_train_mat[cv_test_index]
+                list_of_cv_train_mat = (list_of_train_mat.copy())[cv_train_index]
+                list_of_cv_test_mat = (list_of_train_mat.copy())[cv_test_index]
                 cv_train_lengths = [i.shape[0] for i in list_of_cv_train_mat]
                 cv_train_lengths[-1] -= 1 #for autoregressive observation
                 cv_train_X = np.concatenate(list_of_cv_train_mat, axis=0)
                 cv_test_lengths = [i.shape[0] for i in list_of_cv_test_mat]
                 cv_test_X = np.concatenate(list_of_cv_test_mat, axis=0)
 
-                model = copy.deepcopy(raw_model)
+                model = model_generation.model_factory(model_type, model_config)
                 model = model.fit(cv_train_X, lengths=cv_train_lengths)
                 score = model_score.score(score_metric, model, cv_test_X, cv_test_lengths)
                     
@@ -44,8 +51,9 @@ def run(
                 else:
                     scores.append(score)
         except Exception as e:
-            print "Failed to run CV on this model: %s"%e
             traceback.print_exc(file=sys.stdout)
+            logger.error("Failed to run CV on this model: %s"%e)
+            ipdb.set_trace()
             continue
 
         tried_models.append({
@@ -53,9 +61,8 @@ def run(
             "cv_score_mean": np.mean(scores),
             "cv_score_std": np.std(scores),
         })
-        print 'score:', score 
-        print '='*20
-        print 
+        logger.debug('score:', score )
+        logger.debug('='*20)
 
     if len(tried_models) == 0:
         raise Exception("All models tried failed to train.")

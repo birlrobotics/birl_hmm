@@ -72,6 +72,7 @@ def run(
     best_model = model_generation.model_factory(model_type, best_model_d['model_config'])
     train_X = np.concatenate(list_of_train_mat, axis=0)
     train_lengths = [i.shape[0] for i in list_of_train_mat]
+    train_lengths[-1] -= 1 #for autoregressive observation
     test_X = np.concatenate(list_of_test_mat, axis=0)
     test_lengths = [i.shape[0] for i in list_of_test_mat]
     best_model.fit(train_X, lengths=train_lengths)

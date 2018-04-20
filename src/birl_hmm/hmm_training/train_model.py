@@ -1,6 +1,9 @@
 import numpy as np
 import model_generation
 import model_score
+from sklearn.model_selection import KFold
+import copy
+import sys, traceback
 import ipdb
 
 def run(
@@ -10,43 +13,61 @@ def run(
     model_config,
     score_metric,
 ):
-    train_lengths = [i.shape[0] for i in list_of_train_mat]
-    train_lengths[-1] -= 1 #for autoregressive observation
-    train_X = np.concatenate(list_of_train_mat, axis=0)
-    test_lengths = [i.shape[0] for i in list_of_test_mat]
-    test_X = np.concatenate(list_of_test_mat, axis=0)
+    list_of_train_mat = np.array(list_of_train_mat)
+    list_of_test_mat = np.array(list_of_test_mat)
 
-    model_list = []
+    tried_models = []
     model_generator = model_generation.get_model_generator(model_type, model_config)
-    for model, now_model_config in model_generator:
+    for raw_model, model_config in model_generator:
         print
         print '-'*20
-        print ' working on config:', now_model_config
+        print ' working on config:', model_config
 
         try:
-            model = model.fit(train_X, lengths=train_lengths)
-            score = model_score.score(score_metric, model, test_X, test_lengths)
+            kf = KFold(n_splits=5, shuffle=True)
+            scores = []
+            for cv_train_index, cv_test_index in kf.split(list_of_train_mat):
+                list_of_cv_train_mat = list_of_train_mat[cv_train_index]
+                list_of_cv_test_mat = list_of_train_mat[cv_test_index]
+                cv_train_lengths = [i.shape[0] for i in list_of_cv_train_mat]
+                cv_train_lengths[-1] -= 1 #for autoregressive observation
+                cv_train_X = np.concatenate(list_of_cv_train_mat, axis=0)
+                cv_test_lengths = [i.shape[0] for i in list_of_cv_test_mat]
+                cv_test_X = np.concatenate(list_of_cv_test_mat, axis=0)
+
+                model = copy.deepcopy(raw_model)
+                model = model.fit(cv_train_X, lengths=cv_train_lengths)
+                score = model_score.score(score_metric, model, cv_test_X, cv_test_lengths)
+                    
+                if score == None:
+                    raise Exception("scorer says to skip this model")
+                else:
+                    scores.append(score)
         except Exception as e:
-            print "Failed to train this model, will ignore it: %s"%e
-            continue
-            
-        if score == None:
-            print "scorer says to skip this model, will do"
+            print "Failed to run CV on this model: %s"%e
+            traceback.print_exc(file=sys.stdout)
             continue
 
-        model_list.append({
-            "model": model,
-            "now_model_config": now_model_config,
-            "score": score
+        tried_models.append({
+            "model_config": model_config,
+            "cv_score_mean": np.mean(scores),
+            "cv_score_std": np.std(scores),
         })
         print 'score:', score 
         print '='*20
         print 
 
-    sorted_model_list = sorted(model_list, key=lambda x:x['score'])
+    if len(tried_models) == 0:
+        raise Exception("All models tried failed to train.")
+    tried_models = sorted(tried_models, key=lambda x:x['cv_score_mean'])
 
-    if len(sorted_model_list) == 0:
-        print "cannot train model for state"
-        return None
+    best_model_d = tried_models[0]
+    best_model = model_generation.model_factory(model_type, best_model_d['model_config'])
+    train_X = np.concatenate(list_of_train_mat, axis=0)
+    train_lengths = [i.shape[0] for i in list_of_train_mat]
+    test_X = np.concatenate(list_of_test_mat, axis=0)
+    test_lengths = [i.shape[0] for i in list_of_test_mat]
+    best_model.fit(train_X, lengths=train_lengths)
+    test_score = model_score.score(score_metric, best_model, test_X, test_lengths)
 
-    return sorted_model_list
+    return best_model, test_score, tried_models

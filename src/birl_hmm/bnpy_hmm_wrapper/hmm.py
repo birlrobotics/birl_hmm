@@ -88,8 +88,7 @@ class HongminHMM(object):
         length = len(X)
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
-        LP = self.model.calc_local_params(dataset)
-        log = LP['E_log_soft_ev']
+        log = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
         log_curve = [logsumexp(log[i]) for i in range(len(log))]
         log_curve = np.cumsum(log_curve)
         return log_curve

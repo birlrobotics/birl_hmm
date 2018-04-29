@@ -9,11 +9,6 @@ import ipdb
 
 coloredlogs.install()
 logger = logging.getLogger('birl_hmm_train_model')
-logger.setLevel(logging.INFO)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setLevel(logging.INFO)
-logger.addHandler(consoleHandler)
-
 def run(
     list_of_train_mat,
     list_of_test_mat,
@@ -28,7 +23,7 @@ def run(
     model_generator = model_generation.get_model_generator(model_type, model_config)
     for raw_model, model_config in model_generator:
         logger.debug('-'*20)
-        logger.debug(' working on config:', model_config)
+        logger.debug(' working on config: %s'%model_config)
 
         try:
             kf = KFold(n_splits=5, shuffle=True)
@@ -53,7 +48,6 @@ def run(
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
             logger.error("Failed to run CV on this model: %s"%e)
-            ipdb.set_trace()
             continue
 
         tried_models.append({
@@ -61,7 +55,7 @@ def run(
             "cv_score_mean": np.mean(scores),
             "cv_score_std": np.std(scores),
         })
-        logger.debug('score:', score )
+        logger.debug('score: %s'%score)
         logger.debug('='*20)
 
     if len(tried_models) == 0:

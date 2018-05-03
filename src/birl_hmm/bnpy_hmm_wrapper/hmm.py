@@ -79,12 +79,17 @@ class HongminHMM(object):
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
         logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
+        '''
         # FwdAlg(PiInit, PiMat, SoftEv)        
         fmsg, margPrObs = bnpy.allocmodel.hmm.HMMUtil.FwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), np.exp(logSoftEv))
         loglik = np.log(margPrObs)
         cumsum_log = np.cumsum(loglik)
         logprob = cumsum_log[-1]
         return logprob
+        '''
+        resp, respPair, logMargPrSeq = bnpy.allocmodel.hmm.HMMUtil.FwdBwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), logSoftEv)
+        return logMargPrSeq
+        
 
     def calc_log(self, X):
         from scipy.misc import logsumexp
@@ -92,10 +97,16 @@ class HongminHMM(object):
         X      = X[1:,:]
         length = len(X)
         doc_range = [0, length]
-        dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)         
+        dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)     
+        '''
         logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
         # FwdAlg(PiInit, PiMat, SoftEv)
         fmsg, margPrObs = bnpy.allocmodel.hmm.HMMUtil.FwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), np.exp(logSoftEv))
         loglik = np.log(margPrObs)
-        log_curve = np.cumsum(loglik)       
+        log_curve = np.cumsum(loglik)    
+        '''
+        LP = self.model.calc_local_params(dataset)
+        log = LP['E_log_soft_ev']
+        log_curve = [logsumexp(log[i]) for i in range(len(log))]
+        log_curve = np.cumsum(log_curve)
         return log_curve

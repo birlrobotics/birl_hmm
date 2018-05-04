@@ -71,6 +71,10 @@ class HongminHMM(object):
         return self
 
     def score(self, X):
+        '''
+        Compute the the joint log-likelihood p(x_1, x_2,....,x_T)
+        '''
+        
         if X.shape[0] == 1:
             X = np.append(X, X[0].reshape((1, -1)), axis=0)
         Xprev  = X[:-1,:]
@@ -79,14 +83,6 @@ class HongminHMM(object):
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
         logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
-        '''
-        # FwdAlg(PiInit, PiMat, SoftEv)        
-        fmsg, margPrObs = bnpy.allocmodel.hmm.HMMUtil.FwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), np.exp(logSoftEv))
-        loglik = np.log(margPrObs)
-        cumsum_log = np.cumsum(loglik)
-        logprob = cumsum_log[-1]
-        return logprob
-        '''
         resp, respPair, logMargPrSeq = bnpy.allocmodel.hmm.HMMUtil.FwdBwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), logSoftEv)
         return logMargPrSeq
         
@@ -97,16 +93,11 @@ class HongminHMM(object):
         X      = X[1:,:]
         length = len(X)
         doc_range = [0, length]
-        dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)     
-        '''
+        dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
+
         logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
-        # FwdAlg(PiInit, PiMat, SoftEv)
-        fmsg, margPrObs = bnpy.allocmodel.hmm.HMMUtil.FwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), np.exp(logSoftEv))
-        loglik = np.log(margPrObs)
-        log_curve = np.cumsum(loglik)    
-        '''
-        LP = self.model.calc_local_params(dataset)
-        log = LP['E_log_soft_ev']
-        log_curve = [logsumexp(log[i]) for i in range(len(log))]
+        SoftEv, lognormC = bnpy.allocmodel.hmm.HMMUtil.expLogLik(logSoftEv)
+        fmsg, margPrObs = bnpy.allocmodel.hmm.HMMUtil.FwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), SoftEv)
+        log_curve = np.log(margPrObs) + lognormC
         log_curve = np.cumsum(log_curve)
         return log_curve

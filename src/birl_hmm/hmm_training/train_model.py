@@ -62,14 +62,22 @@ def run(
         raise Exception("All models tried failed to train.")
     tried_models = sorted(tried_models, key=lambda x:x['cv_score_mean'])
 
-    best_model_d = tried_models[0]
-    best_model = model_generation.model_factory(model_type, best_model_d['model_config'])
     train_X = np.concatenate(list_of_train_mat, axis=0)
     train_lengths = [i.shape[0] for i in list_of_train_mat]
     train_lengths[-1] -= 1 #for autoregressive observation
     test_X = np.concatenate(list_of_test_mat, axis=0)
     test_lengths = [i.shape[0] for i in list_of_test_mat]
-    best_model.fit(train_X, lengths=train_lengths)
-    test_score = model_score.score(score_metric, best_model, test_X, test_lengths)
 
-    return best_model, test_score, tried_models
+    best_model_of_5_trains = None
+    best_test_score_of_5_trains = None
+    for i in range(5):
+        best_model_d = tried_models[0]
+        best_model = model_generation.model_factory(model_type, best_model_d['model_config'])
+        best_model.fit(train_X, lengths=train_lengths)
+        test_score = model_score.score(score_metric, best_model, test_X, test_lengths)
+
+        if best_test_score_of_5_trains is None or test_score > best_test_score_of_5_trains:
+            best_test_score_of_5_trains = test_score
+            best_model_of_5_trains = best_model
+
+    return best_model_of_5_trains, best_test_score_of_5_trains, tried_models

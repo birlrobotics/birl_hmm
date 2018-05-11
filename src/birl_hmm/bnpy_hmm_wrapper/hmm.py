@@ -10,8 +10,8 @@ class HongminHMM(object):
         varMethod,
         n_iteration,
         K,
-        nTask = 1,                 # Number of runs to perform for single experiment
-        nBatch = 1,               # Number of batches (aka minibatches) to split up dataset into.
+        nTask = 5,                 # Number of runs to perform for single experiment
+        nBatch = 1,                # Number of batches (aka minibatches) to split up dataset into.
         convergethr = 0.000000001, # for memoVB
         alpha = 0.5,
         gamma = 5.0,
@@ -64,7 +64,8 @@ class HongminHMM(object):
             sF          = self.sF,
             ECovMat     = self.ECovMat,
             K           = self.K,
-            initname    = self.initname)
+            initname    = self.initname,
+	    taskID      = 1)
         self.log_startprob = np.log(model.allocModel.get_init_prob_vector())
         self.log_transmat  = np.log(model.allocModel.get_trans_prob_matrix())
         self.model = model

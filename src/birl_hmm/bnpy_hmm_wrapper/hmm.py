@@ -11,7 +11,7 @@ class HongminHMM(object):
         n_iteration,
         K,
         nTask = 1,                 # Number of runs to perform for single experiment
-        nBatch = 10,               # Number of batches (aka minibatches) to split up dataset into.
+        nBatch = 1,               # Number of batches (aka minibatches) to split up dataset into.
         convergethr = 0.000000001, # for memoVB
         alpha = 0.5,
         gamma = 5.0,

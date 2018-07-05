@@ -65,7 +65,9 @@ class HongminHMM(object):
             ECovMat     = self.ECovMat,
             K           = self.K,
             initname    = self.initname,
-	    taskID      = 1)
+            taskID      = 1,
+            output_path = '/tmp/kitting_experiments/',
+            )
         self.log_startprob = np.log(model.allocModel.get_init_prob_vector())
         self.log_transmat  = np.log(model.allocModel.get_trans_prob_matrix())
         self.model = model

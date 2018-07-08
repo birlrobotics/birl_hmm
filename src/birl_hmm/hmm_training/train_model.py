@@ -4,10 +4,9 @@ import model_score
 from sklearn.model_selection import KFold
 import copy
 import sys, traceback
-import coloredlogs, logging
+import logging
 import ipdb
 
-coloredlogs.install()
 logger = logging.getLogger('birl_hmm_train_model')
 def run(
     list_of_train_mat,

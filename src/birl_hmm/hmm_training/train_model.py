@@ -7,14 +7,17 @@ import sys, traceback
 import logging
 import ipdb
 
-logger = logging.getLogger('birl_hmm_train_model')
 def run(
     list_of_train_mat,
     list_of_test_mat,
     model_type,
     model_config,
     score_metric,
+    logger=None
 ):
+    if logger is None:
+        logger = logging.getLogger('birl_hmm_train_model')
+
     list_of_train_mat = np.array(list_of_train_mat)
     list_of_test_mat = np.array(list_of_test_mat)
 
@@ -45,8 +48,8 @@ def run(
                 else:
                     scores.append(score)
         except Exception as e:
-            traceback.print_exc(file=sys.stdout)
             logger.error("Failed to run CV on this model: %s"%e)
+            logger.error("traceback: %s"%traceback.format_exc())
             continue
 
         tried_models.append({

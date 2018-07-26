@@ -181,12 +181,14 @@ def score(score_metric, model, X, lengths):
 
         score = np.array(score_of_trials).mean()
     elif score_metric == '_score_metric_sum_of_loglik_':
-        final_time_step_log_lik = [
-            model.score(X[i:j]) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
-        ]
-        matrix = np.matrix(final_time_step_log_lik)
-        s = matrix.sum()
-
+        try:
+            final_time_step_log_lik = [
+                model.score(X[i:j]) for i, j in hmm_util.iter_from_X_lengths(X, lengths)
+                ]
+            matrix = np.matrix(final_time_step_log_lik)
+            s = matrix.sum()
+        except ValueError:
+            s = -1000000
         score = -s
 
     else:

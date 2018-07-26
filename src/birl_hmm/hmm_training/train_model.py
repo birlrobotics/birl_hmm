@@ -26,7 +26,7 @@ def run(
         logger.debug(' working on config: %s'%model_config)
 
         try:
-            kf = KFold(n_splits=5, shuffle=True)
+            kf = KFold(n_splits=2, shuffle=True)
             scores = []
             for cv_train_index, cv_test_index in kf.split(list_of_train_mat):
                 list_of_cv_train_mat = (list_of_train_mat.copy())[cv_train_index]

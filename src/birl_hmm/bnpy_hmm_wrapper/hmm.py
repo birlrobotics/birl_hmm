@@ -104,3 +104,72 @@ class HongminHMM(object):
         log_curve = np.log(margPrObs) + lognormC
         log_curve = np.cumsum(log_curve)
         return log_curve
+
+    def predict(self, X, lengths=None):
+        Xprev      = X[:-1,:]
+        X          = X[1:,:]
+        doc_range  = list([0])
+        lengths = [X.shape[0]]
+        doc_range += (np.cumsum(lengths).tolist())
+        dataset    = bnpy.data.GroupXData(X, doc_range, None, Xprev)        
+        for n in range(dataset.nDoc):
+            logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset.make_subset([n]))
+            SoftEv, lognormC = bnpy.allocmodel.hmm.HMMUtil.expLogLik(logSoftEv)            
+            zHat =  self.runViterbiAlg(logSoftEv, self.log_startprob, self.log_transmat)
+        return zHat
+
+    def runViterbiAlg(self, logSoftEv, logPi0, logPi):
+        
+        ''' Run viterbi algorithm to estimate MAP states for single sequence.
+        Args
+        ------
+        logSoftEv : 2D array, T x K
+            log soft evidence matrix
+            each row t := log p( x[t] | z[t]=k )
+        pi0 : 1D array, length K
+            initial state probability vector, sums to one
+        pi : 2D array, shape K x K
+            j-th row is is transition probability vector for state j
+        Returns
+        ------
+        zHat : 1D array, length T, representing the MAP state sequence
+            zHat[t] gives the integer label {1, 2, ... K} of state at timestep t
+        '''
+
+        from bnpy.util import EPS
+        
+        if np.any(logPi0 > 0):
+            logPi0 = np.log(logPi0 + EPS)
+        if np.any(logPi > 0):
+            logPi = np.log(logPi + EPS)
+        T, K = np.shape(logSoftEv)
+
+        # ScoreTable : 2D array, shape T x K
+        #   entry t,k gives the log probability of reaching state k at time t
+        #   under the most likely path
+        ScoreTable = np.zeros((T, K))
+
+        # PtrTable : 2D array, size T x K
+        #   entry t,k gives the integer id of the state j at timestep t-1
+        #   which would be part of the most likely path to reaching k at t
+        PtrTable = np.zeros((T, K))
+
+        ScoreTable[0, :] = logSoftEv[0] + logPi0
+        PtrTable[0, :] = -1
+
+        ids0toK = range(K)
+        for t in xrange(1, T):
+            ScoreMat_t = logPi + ScoreTable[t - 1, :][:, np.newaxis]
+            bestIDvec = np.argmax(ScoreMat_t, axis=0)
+
+            PtrTable[t, :] = bestIDvec
+            ScoreTable[t, :] = logSoftEv[t, :] \
+                + ScoreMat_t[(bestIDvec, ids0toK)]
+
+        # Follow backward pointers to construct most likely state sequence
+        z = np.zeros(T)
+        z[-1] = np.argmax(ScoreTable[-1])
+        for t in reversed(xrange(T - 1)):
+            z[t] = PtrTable[int(t + 1), int(z[t + 1])]
+        return z
+    

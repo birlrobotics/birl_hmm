@@ -4,7 +4,8 @@ import model_score
 from sklearn.model_selection import KFold
 import copy
 import sys, traceback
-import logging
+import coloredlogs, logging
+coloredlogs.install()
 import ipdb
 
 def run(
@@ -28,7 +29,7 @@ def run(
         logger.debug(' working on config: %s'%model_config)
 
         try:
-            kf = KFold(n_splits=2, shuffle=True)
+            kf = KFold(n_splits=3, shuffle=True)
             scores = []
             for cv_train_index, cv_test_index in kf.split(list_of_train_mat):
                 list_of_cv_train_mat = (list_of_train_mat.copy())[cv_train_index]
@@ -50,6 +51,7 @@ def run(
         except Exception as e:
             logger.error("Failed to run CV on this model: %s"%e)
             logger.error("traceback: %s"%traceback.format_exc())
+            ipdb.set_trace()
             continue
 
         tried_models.append({

@@ -85,8 +85,14 @@ class HongminHMM(object):
         length = len(X)
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
-        logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
-        resp, respPair, logMargPrSeq = bnpy.allocmodel.hmm.HMMUtil.FwdBwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), logSoftEv)
+        try:
+            #logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
+            LP = self.model.calc_local_params(dataset)
+            logSoftEv = LP['E_log_soft_ev'] 
+            resp, respPair, logMargPrSeq = bnpy.allocmodel.hmm.HMMUtil.FwdBwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), logSoftEv)
+        except Exception as e:
+            print ('error in calculating score: %s'%e)
+            ipdb.set_trace()
         return logMargPrSeq
         
 
@@ -98,7 +104,9 @@ class HongminHMM(object):
         doc_range = [0, length]
         dataset = bnpy.data.GroupXData(X, doc_range, length, Xprev)
 
-        logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)
+        #logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset)        
+        LP = self.model.calc_local_params(dataset)
+        logSoftEv = LP['E_log_soft_ev'] 
         SoftEv, lognormC = bnpy.allocmodel.hmm.HMMUtil.expLogLik(logSoftEv)
         fmsg, margPrObs = bnpy.allocmodel.hmm.HMMUtil.FwdAlg(np.exp(self.log_startprob), np.exp(self.log_transmat), SoftEv)
         log_curve = np.log(margPrObs) + lognormC
@@ -113,7 +121,9 @@ class HongminHMM(object):
         doc_range += (np.cumsum(lengths).tolist())
         dataset    = bnpy.data.GroupXData(X, doc_range, None, Xprev)        
         for n in range(dataset.nDoc):
-            logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset.make_subset([n]))
+            #logSoftEv = self.model.obsModel.calcLogSoftEvMatrix_FromPost(dataset.make_subset([n]))
+            LP = self.model.calc_local_params(dataset.make_subset([n]))
+            logSoftEv = LP['E_log_soft_ev'] 
             SoftEv, lognormC = bnpy.allocmodel.hmm.HMMUtil.expLogLik(logSoftEv)            
             zHat =  self.runViterbiAlg(logSoftEv, self.log_startprob, self.log_transmat)
         return zHat

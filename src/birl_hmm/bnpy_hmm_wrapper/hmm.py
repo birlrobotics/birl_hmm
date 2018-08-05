@@ -1,6 +1,6 @@
 import bnpy
 import numpy as np
-import ipdb
+import os, ipdb
 
 class HongminHMM(object):
     def __init__(
@@ -46,6 +46,22 @@ class HongminHMM(object):
         doc_range += (np.cumsum(lengths).tolist())
         dataset    = bnpy.data.GroupXData(X, doc_range, None, Xprev)
 
+        goodelbopairs_merge_kwargs = dict(
+            m_startLap = 5,
+            # Set limits to number of merges attempted each lap.
+            # This value specifies max number of tries for each cluster
+            m_maxNumPairsContainingComp = 5,
+            # Set "reactivation" limits
+            # So that each cluster is eligible again after 10 passes thru dataset
+            # Or when it's size changes by 400%
+            m_nLapToReactivate = 10,
+            m_minPercChangeInNumAtomsToReactivate = 400 * 0.01,
+            # Specify how to rank pairs (determines order in which merges are tried)
+            # 'obsmodel_elbo' means rank pairs by improvement to observation model ELBO
+            m_pair_ranking_procedure = 'obsmodel_elbo',
+            m_pair_ranking_direction = 'descending',
+            )
+        
         # -set the hyperparameters
         model, model_info = bnpy.run(
             dataset,
@@ -67,10 +83,18 @@ class HongminHMM(object):
             initname    = self.initname,
             taskID      = 1,
             output_path = '/tmp/kitting_experiments/',
+#            moves       = 'merge,shuffle',
+#            **dict(goodelbopairs_merge_kwargs.items())
             )
+        model_info['elapsed_time_sec_history'] = map(float,
+            open(os.path.join(model_info['task_output_path'],'trace_elapsed_time_sec.txt'),'r').read().split())
+        model_info['K_history'] = map(int,
+            open(os.path.join(model_info['task_output_path'],'trace_K.txt'),'r').read().split())
+        
         self.log_startprob = np.log(model.allocModel.get_init_prob_vector())
         self.log_transmat  = np.log(model.allocModel.get_trans_prob_matrix())
         self.model = model
+        self.model_info_dict = model_info
         return self
 
     def score(self, X):

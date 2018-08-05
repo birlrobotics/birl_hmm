@@ -51,7 +51,6 @@ def run(
         except Exception as e:
             logger.error("Failed to run CV on this model: %s"%e)
             logger.error("traceback: %s"%traceback.format_exc())
-            ipdb.set_trace()
             continue
 
         tried_models.append({
@@ -67,5 +66,5 @@ def run(
         raise Exception("All models tried failed to train.")
     tried_models = sorted(tried_models, key=lambda x:x['cv_score_mean'])
     best_model = tried_models[0]['model'] 
-    test_score = tried_models[0]['cv_score_mean']   
+    test_score = tried_models[0]['cv_score_mean']
     return best_model, test_score, tried_models
